@@ -1,25 +1,16 @@
 {
-    "name": "backend",
+    "name": "kk-backend",
     "version": "1.0.0",
-    "description": "Backend-Source für das hiesige Informatik-Projekt",
+    "description": "",
     "main": "script.js",
     "scripts": {
-        "test": "echo \"Error: no test specified\" && exit 1",
         "start": "node script.js"
     },
-    "repository": {
-        "type": "git",
-        "url": "git+https://github.com/informatik-projekt-partygame/backend.git"
-    },
+    "keywords": [],
     "author": "",
     "license": "ISC",
-    "bugs": {
-        "url": "https://github.com/informatik-projekt-partygame/backend/issues"
-    },
-    "homepage": "https://github.com/informatik-projekt-partygame/backend#readme",
     "dependencies": {
         "cors": "^2.8.5",
-        "express": "^5.1.0",
-        "mime-db": "^1.54.0"
+        "express": "^4.18.2"
     }
 }
