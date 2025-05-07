@@ -19,6 +19,7 @@
     "homepage": "https://github.com/informatik-projekt-partygame/backend#readme",
     "dependencies": {
         "cors": "^2.8.5",
-        "express": "^5.1.0"
+        "express": "^5.1.0",
+        "mime-db": "^1.54.0"
     }
 }
