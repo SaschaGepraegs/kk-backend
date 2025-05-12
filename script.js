@@ -10,7 +10,7 @@ var finishedPlayers = []
 var finishedPlayersTiming = []
 
 app.get('/', (req, res) => {
-    res.send("<h1>Folgende Infos sind bekannt: </h1> <br> <p>Aktuelle Lobbys: </p>" + currentGames + "<br> <p>Geht's los?: </p>" + gehtslos + "<br> <p>Aktuelle Spieler: </p>" + currentPlayers + "<br><p>Liste der fertigen Spieler: </p>" + finishedPlayers + "<br><p>Zeit der gefinisheden Spieler: </p>" + finishedPlayersTiming + "<br><h1>Folgende APIs sind verfügbar: </h1> <br> <p>/gettest</p> <p>/posttest</p> <p>/checkForPlayer</p> <p>/registerLobby</p> <p>/gehtsLos</p> <p>/losGehts</p> <p>/binDa</p> <p>/finishCall</p> <p>/getFinishedPlayers</p> <p>/reset</p>");
+    res.send("<h1>Folgende Infos sind bekannt: </h1> <br> <p>Aktuelle Lobbys: </p>" + currentGames + "<br> <p>Geht's los?: </p>" + gehtslos + "<br> <p>Aktuelle Spieler: </p>" + currentPlayers + "<br><p>Liste der fertigen Spieler: </p>" + finishedPlayers + "<br><p>Zeit der gefinisheden Spieler: </p>" + finishedPlayersTiming + "<br><h1>Folgende APIs sind verfügbar: </h1> <br> <p>/gettest</p> <p>/posttest</p> <p>/checkForPlayer</p> <p>/registerLobby</p> <p>/gehtsLos</p> <p>/losGehts</p> <p>/binDa</p> <p>/finishCall</p> <p>/getFinishedPlayers</p> <p>/reset</p> <p>/getOpenLobbyList</p>");
 });
 
 app.get('/gettest', (req, res) => {
@@ -63,6 +63,10 @@ app.post('/finishCall', (req, res) => {
 
 app.get('/getFinishedPlayers', (req, res) => {
     res.send([finishedPlayers, finishedPlayersTiming])
+})
+
+app.get('/getOpenLobbyList', (req, res) => {
+    res.send(currentGames)
 })
 
 app.get('/reset', (req, res) => {
