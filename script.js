@@ -1,13 +1,24 @@
 const express = require('express');
 const cors = require('cors');
 const app = express();
-app.use(cors());
+app.use(cors(corsOptions));
 app.use(express.json());
-let currentGames = ["devtest"]
+let currentGames = ["devtest", 1111]
 gehtslos = false;
 currentPlayers = []
 var finishedPlayers = []
 var finishedPlayersTiming = []
+
+const allowedOrigin = 'https://klickkrawall.netlify.app';
+const corsOptions = {
+    origin: function(origin, callback) {
+        if (!origin || origin === allowedOrigin) {
+            callback(null, true);
+        } else {
+            callback(new Error('Nicht erlaubter Ursprung'));
+        }
+    }
+};
 
 app.get('/', (req, res) => {
     res.send("<h1>Folgende Infos sind bekannt: </h1> <br> <p>Aktuelle Lobbys: </p>" + currentGames + "<br> <p>Geht's los?: </p>" + gehtslos + "<br> <p>Aktuelle Spieler: </p>" + currentPlayers + "<br><p>Liste der fertigen Spieler: </p>" + finishedPlayers + "<br><p>Zeit der gefinisheden Spieler: </p>" + finishedPlayersTiming + "<br><h1>Folgende APIs sind verfügbar: </h1> <br> <p>/gettest</p> <p>/posttest</p> <p>/checkForPlayer</p> <p>/registerLobby</p> <p>/gehtsLos</p> <p>/losGehts</p> <p>/binDa</p> <p>/finishCall</p> <p>/getFinishedPlayers</p> <p>/reset</p> <p>/getOpenLobbyList</p>");
@@ -72,7 +83,6 @@ app.get('/getOpenLobbyList', (req, res) => {
 app.get('/reset', (req, res) => {
     gehtslos = false;
     currentPlayers = [];
-    beleidigungen = []
     finishedPlayers = []
     finishedPlayersTiming = []
     res.send("erfolgreich resettet");
