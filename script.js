@@ -75,7 +75,8 @@ app.get('/reset', (req, res) => {
     beleidigungen = []
     finishedPlayers = []
     finishedPlayersTiming = []
-    res.send("erfolgreich resettet")
+    res.send("erfolgreich resettet");
+    currentGames = ["devtest"]
 })
 
 app.listen(3000);
