@@ -61,10 +61,10 @@ app.get('/getAllPlayersOfLobby', (req, res) => {
 app.get('/gehtsLos', (req, res) => {
     const { lobby } = req.query;
     if (lobbies[lobby]) {
-        if (lobbies[lobby].gehtslos) {
+        if (lobbies[lobby].gehtslos == true) {
             res.send(true);
-        } else {
-            res.send(lobbies[lobby].players);
+        } else{
+            res.send(false);
         }
     } else {
         res.status(404).send("Lobby nicht gefunden");
