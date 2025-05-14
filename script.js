@@ -49,6 +49,15 @@ app.post('/registerLobby', (req, res) => {
     res.send(Object.keys(lobbies));
 });
 
+app.get('/getAllPlayersOfLobby', (req, res) => {
+    const { lobby } = req.query;
+    if (lobbies[lobby]) {
+        res.send(lobbies[lobby].players);
+    } else {
+        res.status(404).send("Lobby nicht gefunden");
+    }
+});
+
 app.get('/gehtsLos', (req, res) => {
     const { lobby } = req.query;
     if (lobbies[lobby]) {
