@@ -6,11 +6,20 @@ app.use(express.json());
 
 const Redis = require("ioredis");
 
-let client = new Redis("rediss://default:AT1OAAIjcDFiNGZhZjMwOGYwY2M0ZjQ0ODZjM2YwYmJjNTgzZDcyNHAxMA@dominant-macaque-15694.upstash.io:6379");
-//let client = new Redis("rediss://:YOUR_PASSWORD@YOUR_ENDPOINT:YOUR_PORT");
-await client.set("foo", "bar");
-let x = await client.get("foo");
-console.log(x);
+
+async function test() {
+    try {
+        const client = new Redis("rediss://...");
+        await client.set("testKey", "hello");
+        const value = await client.get("testKey");
+        console.log("Wert aus Redis:", value);
+        client.disconnect();
+    } catch (err) {
+        console.error("Fehler beim Verbinden zu Redis:", err.message);
+    }
+}
+
+test();
 
 // Datenstruktur für Lobbys
 let lobbies = {
