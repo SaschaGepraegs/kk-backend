@@ -4,6 +4,14 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+const Redis = require("ioredis");
+
+let client = new Redis("rediss://default:AT1OAAIjcDFiNGZhZjMwOGYwY2M0ZjQ0ODZjM2YwYmJjNTgzZDcyNHAxMA@dominant-macaque-15694.upstash.io:6379");
+//let client = new Redis("rediss://:YOUR_PASSWORD@YOUR_ENDPOINT:YOUR_PORT");
+await client.set("foo", "bar");
+let x = await client.get("foo");
+console.log(x);
+
 // Datenstruktur für Lobbys
 let lobbies = {
     1111: {
