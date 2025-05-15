@@ -1,158 +1,174 @@
-const express = require('express');
-const cors = require('cors');
+const express = require("express");
+const cors = require("cors");
+const { kv } = require("@vercel/kv");
+
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Datenstruktur für Lobbys
-let lobbies = {
-    1111: {
-        players: [],
-        finishedPlayers: [],
-        finishedPlayersTiming: [],
-        gehtslos: false
-    }
-};
+const CACHE_HEADER = { "Cache-Control": "no-cache, no-store, must-revalidate" };
 
-app.get('/', (req, res) => {
-    res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
-    res.send("<h1>Folgende Infos sind bekannt: </h1> <br> <p>Aktuelle Lobbys: </p>" + Object.keys(lobbies).join(", ") + "<br><h1>Folgende APIs sind verfügbar: </h1> <br> <p>/gettest</p> <p>/posttest</p> <p>/checkForPlayer</p> <p>/registerLobby</p> <p>/gehtsLos</p> <p>/losGehts</p> <p>/binDa</p> <p>/finishCall</p> <p>/getFinishedPlayers</p> <p>/reset</p> <p>/getOpenLobbyList</p>");
+// Hilfsfunktion, um Lobbys zu laden/speichern
+async function getLobbies() {
+    return (await kv.get("lobbies")) || {};
+}
+
+async function saveLobbies(lobbies) {
+    await kv.set("lobbies", lobbies);
+}
+
+// Beispielroute
+app.get("/", async(req, res) => {
+    const lobbies = await getLobbies();
+    res.set(CACHE_HEADER).send(
+        "<h1>Folgende Infos sind bekannt:</h1><br><p>Aktuelle Lobbys: </p>" +
+        Object.keys(lobbies).join(", ") +
+        "<br><h1>Folgende APIs sind verfügbar:</h1><br><p>/gettest</p><p>/posttest</p><p>/checkForPlayer</p><p>/registerLobby</p><p>/gehtsLos</p><p>/losGehts</p><p>/binDa</p><p>/finishCall</p><p>/getFinishedPlayers</p><p>/reset</p><p>/getOpenLobbyList</p>"
+    );
 });
 
-app.get('/gettest', (req, res) => {
-    res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
-    res.send("Danke!");
+app.get("/gettest", (req, res) => {
+    res.set(CACHE_HEADER).send("Danke!");
 });
 
-app.post('/posttest', (req, res) => {
-    var ergebnis = req.body.test;
-    res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
-    res.send("Danke, dass du " + ergebnis + " übermittelt hast!");
+app.post("/posttest", (req, res) => {
+    const { test } = req.body;
+    res.set(CACHE_HEADER).send(`Danke, dass du ${test} übermittelt hast!`);
 });
 
-app.post('/checkForPlayer', (req, res) => {
+app.post("/checkForPlayer", async(req, res) => {
     const { lobby, username } = req.body;
-    if (lobbies[lobby] && lobbies[lobby].players.includes(username)) {
-        res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
-        res.send(true);
-    } else {
-        res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
-        res.send(false);
+    const lobbies = await getLobbies();
+
+    let isInLobby = false;
+
+    if (lobbies[lobby] && Array.isArray(lobbies[lobby].players)) {
+        isInLobby = lobbies[lobby].players.includes(username);
     }
+
+    res.set(CACHE_HEADER).send(isInLobby);
 });
 
-app.post('/registerLobby', (req, res) => {
+
+app.post("/registerLobby", async(req, res) => {
     const { gamepin } = req.body;
+    const lobbies = await getLobbies();
+
     if (!lobbies[gamepin]) {
         lobbies[gamepin] = {
             players: [],
             finishedPlayers: [],
             finishedPlayersTiming: [],
-            gehtslos: false
+            gehtslos: false,
         };
+        await saveLobbies(lobbies);
     }
-    res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
-    res.send(Object.keys(lobbies));
+
+    res.set(CACHE_HEADER).send(Object.keys(lobbies));
 });
 
-app.get('/getAllPlayersOfLobby', (req, res) => {
+app.get("/getAllPlayersOfLobby", async(req, res) => {
     const { lobby } = req.query;
+    const lobbies = await getLobbies();
+
     if (lobbies[lobby]) {
-        res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
-        res.send(lobbies[lobby].players);
+        res.set(CACHE_HEADER).send(lobbies[lobby].players);
     } else {
-        res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
-        res.status(404).send("Lobby nicht gefunden");
+        res.set(CACHE_HEADER).status(404).send("Lobby nicht gefunden");
     }
 });
 
-app.get('/gehtsLos', (req, res) => {
+app.get("/gehtsLos", async(req, res) => {
     const { lobby } = req.query;
+    const lobbies = await getLobbies();
+
     if (lobbies[lobby]) {
-        if (lobbies[lobby].gehtslos == true) {
-            res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
-            res.send(true);
-        } else {
-            res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
-            res.send(false);
-        }
+        res.set(CACHE_HEADER).send(lobbies[lobby].gehtslos);
     } else {
-        res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
-        res.status(404).send("Lobby nicht gefunden");
+        res.set(CACHE_HEADER).status(404).send("Lobby nicht gefunden");
     }
 });
 
-app.get('/losGehts', (req, res) => {
+app.get("/losGehts", async(req, res) => {
     const { lobby } = req.query;
+    const lobbies = await getLobbies();
+
     if (lobbies[lobby]) {
         lobbies[lobby].gehtslos = true;
-        res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
-        res.send("oke");
+        await saveLobbies(lobbies);
+        res.set(CACHE_HEADER).send("oke");
     } else {
-        res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
-        res.status(404).send("Lobby nicht gefunden");
+        res.set(CACHE_HEADER).status(404).send("Lobby nicht gefunden");
     }
 });
 
-app.post('/binDa', (req, res) => {
+app.post("/binDa", async(req, res) => {
     const { lobby, username } = req.body;
+    const lobbies = await getLobbies();
+
     if (lobbies[lobby]) {
         if (!lobbies[lobby].players.includes(username)) {
             lobbies[lobby].players.push(username);
+            await saveLobbies(lobbies);
         }
-        res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
-        res.send(lobbies[lobby].players);
+        res.set(CACHE_HEADER).send(lobbies[lobby].players);
     } else {
-        res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
-        res.status(404).send("Lobby nicht gefunden");
+        res.set(CACHE_HEADER).status(404).send("Lobby nicht gefunden");
     }
 });
 
-app.post('/finishCall', (req, res) => {
+app.post("/finishCall", async(req, res) => {
     const { lobby, username } = req.body;
+    const lobbies = await getLobbies();
+
     if (lobbies[lobby]) {
         if (!lobbies[lobby].finishedPlayers.includes(username)) {
             lobbies[lobby].finishedPlayers.push(username);
-            lobbies[lobby].finishedPlayersTiming.push(Math.floor(new Date().getTime() / 1000.0));
+            lobbies[lobby].finishedPlayersTiming.push(
+                Math.floor(new Date().getTime() / 1000.0)
+            );
+            await saveLobbies(lobbies);
         }
-        res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
-        res.send(lobbies[lobby].finishedPlayers);
+        res.set(CACHE_HEADER).send(lobbies[lobby].finishedPlayers);
     } else {
-        res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
-        res.status(404).send("Lobby nicht gefunden");
+        res.set(CACHE_HEADER).status(404).send("Lobby nicht gefunden");
     }
 });
 
-app.get('/getFinishedPlayers', (req, res) => {
+app.get("/getFinishedPlayers", async(req, res) => {
     const { lobby } = req.query;
+    const lobbies = await getLobbies();
+
     if (lobbies[lobby]) {
-        res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
-        res.send([lobbies[lobby].finishedPlayers, lobbies[lobby].finishedPlayersTiming]);
+        res.set(CACHE_HEADER).send([
+            lobbies[lobby].finishedPlayers,
+            lobbies[lobby].finishedPlayersTiming,
+        ]);
     } else {
-        res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
-        res.status(404).send("Lobby nicht gefunden");
+        res.set(CACHE_HEADER).status(404).send("Lobby nicht gefunden");
     }
 });
 
-app.get('/getOpenLobbyList', (req, res) => {
-    res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
-    res.send(Object.keys(lobbies));
+app.get("/getOpenLobbyList", async(req, res) => {
+    const lobbies = await getLobbies();
+    res.set(CACHE_HEADER).send(Object.keys(lobbies));
 });
 
-app.get('/reset', (req, res) => {
+app.get("/reset", async(req, res) => {
     const { lobby } = req.query;
+    const lobbies = await getLobbies();
+
     if (lobbies[lobby]) {
         lobbies[lobby] = {
             players: [],
             finishedPlayers: [],
             finishedPlayersTiming: [],
-            gehtslos: false
+            gehtslos: false,
         };
-        res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
-        res.send("Lobby erfolgreich resettet");
+        await saveLobbies(lobbies);
+        res.set(CACHE_HEADER).send("Lobby erfolgreich resettet");
     } else {
-        res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
-        res.status(404).send("Lobby nicht gefunden");
+        res.set(CACHE_HEADER).status(404).send("Lobby nicht gefunden");
     }
 });
 
