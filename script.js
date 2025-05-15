@@ -1,6 +1,11 @@
-const express = require("express");
-const cors = require("cors");
-const { kv } = require("@vercel/kv");
+import express from "express";
+import cors from "cors";
+import { Redis } from "@upstash/redis";
+
+const redis = new Redis({
+    url: process.env.KV_REST_API_URL,
+    token: process.env.KV_REST_API_TOKEN,
+});
 
 const app = express();
 app.use(cors());
@@ -10,14 +15,16 @@ const CACHE_HEADER = { "Cache-Control": "no-cache, no-store, must-revalidate" };
 
 // Hilfsfunktion, um Lobbys zu laden/speichern
 async function getLobbies() {
-    return (await kv.get("lobbies")) || {};
+    const lobbies = await redis.get("lobbies");
+    return lobbies || {};
 }
 
 async function saveLobbies(lobbies) {
-    await kv.set("lobbies", lobbies);
+    await redis.set("lobbies", lobbies);
 }
 
-// Beispielroute
+// Routen
+
 app.get("/", async(req, res) => {
     const lobbies = await getLobbies();
     res.set(CACHE_HEADER).send(
@@ -48,7 +55,6 @@ app.post("/checkForPlayer", async(req, res) => {
 
     res.set(CACHE_HEADER).send(isInLobby);
 });
-
 
 app.post("/registerLobby", async(req, res) => {
     const { gamepin } = req.body;
@@ -125,7 +131,7 @@ app.post("/finishCall", async(req, res) => {
         if (!lobbies[lobby].finishedPlayers.includes(username)) {
             lobbies[lobby].finishedPlayers.push(username);
             lobbies[lobby].finishedPlayersTiming.push(
-                Math.floor(new Date().getTime() / 1000.0)
+                Math.floor(new Date().getTime() / 1000)
             );
             await saveLobbies(lobbies);
         }
@@ -172,4 +178,6 @@ app.get("/reset", async(req, res) => {
     }
 });
 
-app.listen(3000);
+app.listen(3000, () => {
+    console.log("Server läuft auf Port 3000");
+});
