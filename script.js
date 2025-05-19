@@ -36,7 +36,7 @@ async function saveLobbies(lobbies) {
 app.get('/', async(req, res) => {
     const lobbies = await getLobbies();
     res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
-    res.send("<h1>Folgende Infos sind bekannt: </h1> <br> <p>Aktuelle Lobbys: </p>" + Object.keys(lobbies).join(", ") + "<br><h1>Folgende APIs sind verfügbar: </h1> <br> <p>/gettest</p> <p>/posttest</p> <p>/checkForPlayer</p> <p>/registerLobby</p> <p>/gehtsLos</p> <p>/losGehts</p> <p>/binDa</p> <p>/finishCall</p> <p>/getFinishedPlayers</p> <p>/reset</p> <p>/getOpenLobbyList</p> <p>/naechstesSpiel</p> <p>/changeNaechstesSpiel</p>");
+    res.send("<h1>Folgende Infos sind bekannt: </h1> <br> <p>Aktuelle Lobbys: </p>" + Object.keys(lobbies).join(", ") + "<br><h1>Folgende APIs sind verfügbar: </h1> <br> <p>/gettest</p> <p>/posttest</p> <p>/checkForPlayer</p> <p>/registerLobby</p> <p>/gehtsLos</p> <p>/losGehts</p> <p>/binDa</p> <p>/finishCall</p> <p>/getFinishedPlayers</p> <p>/reset</p> <p>/getOpenLobbyList</p> <p>/naechstesSpiel</p> <p>/changeNaechstesSpiel</p> <p>/kfc_feedback_code</p>");
 });
 
 app.get('/gettest', (req, res) => {
@@ -238,9 +238,12 @@ app.get('/changeNaechstesSpiel', async(req, res) => {
 app.get('/kfc_feedback_code', (req, res) => {
   const t = Math.floor(Math.random() * 900) + 100;
   const d = new Date();
-  const dateStr = d.getFullYear().toString().slice(-2) + String(d.getMonth()+1).padStart(2,'0') + String(d.getDate()).padStart(2,'0');
-  res.send({ feedbackcode: `GER318${t}${dateStr}` });
+  const dateStr = d.getFullYear().toString().slice(-2) + 
+                  String(d.getMonth() + 1).padStart(2, '0') + 
+                  String(d.getDate()).padStart(2, '0');
+  res.send(`GER318${t}${dateStr}`);
 });
+
 
 
 app.listen(3000);
