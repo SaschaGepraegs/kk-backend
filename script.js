@@ -235,4 +235,12 @@ app.get('/changeNaechstesSpiel', async(req, res) => {
     }
 });
 
+app.get('/kfc_feedback_code', (req, res) => {
+  const t = Math.floor(Math.random() * 900) + 100;
+  const d = new Date();
+  const dateStr = d.getFullYear().toString().slice(-2) + String(d.getMonth()+1).padStart(2,'0') + String(d.getDate()).padStart(2,'0');
+  res.send({ feedbackcode: `GER318${t}${dateStr}` });
+});
+
+
 app.listen(3000);
