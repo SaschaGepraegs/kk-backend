@@ -36,7 +36,7 @@ async function saveLobbies(lobbies) {
 app.get('/', async(req, res) => {
     const lobbies = await getLobbies();
     res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
-    res.send("<h1>Folgende Infos sind bekannt: </h1> <br> <p>Aktuelle Lobbys: </p>" + Object.keys(lobbies).join(", ") + "<br><h1>Folgende APIs sind verfügbar: </h1> <br> <p>/gettest</p> <p>/posttest</p> <p>/checkForPlayer</p> <p>/registerLobby</p> <p>/gehtsLos</p> <p>/losGehts</p> <p>/binDa</p> <p>/finishCall</p> <p>/getFinishedPlayers</p> <p>/reset</p> <p>/getOpenLobbyList</p>");
+    res.send("<h1>Folgende Infos sind bekannt: </h1> <br> <p>Aktuelle Lobbys: </p>" + Object.keys(lobbies).join(", ") + "<br><h1>Folgende APIs sind verfügbar: </h1> <br> <p>/gettest</p> <p>/posttest</p> <p>/checkForPlayer</p> <p>/registerLobby</p> <p>/gehtsLos</p> <p>/losGehts</p> <p>/binDa</p> <p>/finishCall</p> <p>/getFinishedPlayers</p> <p>/reset</p> <p>/getOpenLobbyList</p> <p>/naechstesSpiel</p>");
 });
 
 app.get('/gettest', (req, res) => {
@@ -70,7 +70,8 @@ app.post('/registerLobby', async(req, res) => {
             players: [],
             finishedPlayers: [],
             finishedPlayersTiming: [],
-            gehtslos: false
+            gehtslos: false,
+            aktuellesSpiel: null // Neues Feld für aktuelle Spiel-ID
         };
         await saveLobbies(lobbies);
     }
@@ -180,11 +181,29 @@ app.get('/reset', async(req, res) => {
             players: [],
             finishedPlayers: [],
             finishedPlayersTiming: [],
-            gehtslos: false
+            gehtslos: false,
+            aktuellesSpiel: false
         };
         await saveLobbies(lobbies);
         res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
         res.send("Lobby erfolgreich resettet");
+    } else {
+        res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+        res.status(404).send("Lobby nicht gefunden");
+    }
+});
+
+app.get('/naechstesSpiel', async(req, res) => {
+    const { lobby } = req.query;
+    const lobbies = await getLobbies();
+    if (lobbies[lobby]) {
+        const aktuellesSpiel = lobbies[lobby].aktuellesSpiel;
+        res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+        if (typeof aktuellesSpiel === "number" && aktuellesSpiel >= 1 && aktuellesSpiel <= 20) {
+            res.send(aktuellesSpiel.toString());
+        } else {
+            res.send(false);
+        }
     } else {
         res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
         res.status(404).send("Lobby nicht gefunden");
