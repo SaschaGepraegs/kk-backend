@@ -222,6 +222,15 @@ app.get('/changeNaechstesSpiel', async(req, res) => {
             await saveLobbies(lobbies);
             res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
             res.send("aktuellesSpiel geändert auf " + id);
+            // Nach 10 Sekunden aktuellesSpiel wieder auf null setzen und speichern und so zeug
+            setTimeout(async () => {
+                const lobbiesTimeout = await getLobbies();
+                if (lobbiesTimeout[lobby] && lobbiesTimeout[lobby].aktuellesSpiel === id) {
+                    lobbiesTimeout[lobby].aktuellesSpiel = null;
+                    await saveLobbies(lobbiesTimeout);
+                }
+            }, 10000);
+
         } else if (spielid === "false" || spielid === "null") {
             lobbies[lobby].aktuellesSpiel = null;
             await saveLobbies(lobbies);
