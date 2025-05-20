@@ -71,7 +71,8 @@ app.post('/registerLobby', async(req, res) => {
             finishedPlayers: [],
             finishedPlayersTiming: [],
             gehtslos: false,
-            aktuellesSpiel: null // Neues Feld für aktuelle Spiel-ID
+            aktuellesSpiel: null, // Neues Feld für aktuelle Spiel-ID
+            punkte: {} // Neues Feld für Punkte pro Spieler
         };
         await saveLobbies(lobbies);
     }
@@ -182,7 +183,8 @@ app.get('/reset', async(req, res) => {
             finishedPlayers: [],
             finishedPlayersTiming: [],
             gehtslos: false,
-            aktuellesSpiel: null // Korrigiert: false → null
+            aktuellesSpiel: null, // Korrigiert: false → null
+            punkte: {} // Punkte auch zurücksetzen
         };
         await saveLobbies(lobbies);
         res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
@@ -244,6 +246,44 @@ app.get('/kfc_feedback_code', (req, res) => {
   res.send(`GER318${t}${dateStr}`);
 });
 
+app.get('/addPointsToPlayer', async(req, res) => {
+    const { lobby, spieler, punkte } = req.query;
+    const lobbies = await getLobbies();
+    if (lobbies[lobby]) {
+        if (!lobbies[lobby].punkte) {
+            lobbies[lobby].punkte = {};
+        }
+        const punkteInt = parseInt(punkte, 10);
+        if (!Number.isInteger(punkteInt)) {
+            res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+            res.status(400).send("Ungültige Punktezahl");
+            return;
+        }
+        if (!lobbies[lobby].punkte[spieler]) {
+            lobbies[lobby].punkte[spieler] = 0;
+        }
+        lobbies[lobby].punkte[spieler] += punkteInt;
+        await saveLobbies(lobbies);
+        res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+        res.send(`Punkte von ${spieler} in Lobby ${lobby}: ${lobbies[lobby].punkte[spieler]}`);
+    } else {
+        res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+        res.status(404).send("Lobby nicht gefunden");
+    }
+});
 
+// Neuer Endpunkt: /getPointsOfPlayer
+app.get('/getPointsOfPlayer', async(req, res) => {
+    const { lobby, spieler } = req.query;
+    const lobbies = await getLobbies();
+    if (lobbies[lobby]) {
+        const punkte = lobbies[lobby].punkte && lobbies[lobby].punkte[spieler] ? lobbies[lobby].punkte[spieler] : 0;
+        res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+        res.send(punkte.toString());
+    } else {
+        res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+        res.status(404).send("Lobby nicht gefunden");
+    }
+});
 
 app.listen(3000);
