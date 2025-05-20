@@ -36,7 +36,7 @@ async function saveLobbies(lobbies) {
 app.get('/', async(req, res) => {
     const lobbies = await getLobbies();
     res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
-    res.send("<h1>Folgende Infos sind bekannt: </h1> <br> <p>Aktuelle Lobbys: </p>" + Object.keys(lobbies).join(", ") + "<br><h1>Folgende APIs sind verfügbar: </h1> <br> <p>/gettest</p> <p>/posttest</p> <p>/checkForPlayer</p> <p>/registerLobby</p> <p>/gehtsLos</p> <p>/losGehts</p> <p>/binDa</p> <p>/finishCall</p> <p>/getFinishedPlayers</p> <p>/reset</p> <p>/getOpenLobbyList</p> <p>/naechstesSpiel</p> <p>/changeNaechstesSpiel</p> <p>/kfc_feedback_code</p>");
+    res.send("<h1>Folgende Infos sind bekannt: </h1> <br> <p>Aktuelle Lobbys: </p>" + Object.keys(lobbies).join(", ") + "<br><h1>Folgende APIs sind verfügbar: </h1> <br> <p>/gettest</p> <p>/posttest</p> <p>/checkForPlayer</p> <p>/registerLobby</p> <p>/gehtsLos</p> <p>/losGehts</p> <p>/binDa</p> <p>/finishCall</p> <p>/getFinishedPlayers</p> <p>/reset</p> <p>/getOpenLobbyList</p> <p>/naechstesSpiel</p> <p>/changeNaechstesSpiel</p> <p>/kfc_feedback_code</p> <p>/addPointsToPlayer</p> <p>/getPointsOfPlayer</p>");
 });
 
 app.get('/gettest', (req, res) => {
@@ -272,14 +272,18 @@ app.get('/addPointsToPlayer', async(req, res) => {
     }
 });
 
-// Neuer Endpunkt: /getPointsOfPlayer
 app.get('/getPointsOfPlayer', async(req, res) => {
-    const { lobby, spieler } = req.query;
+    const { lobby } = req.query;
     const lobbies = await getLobbies();
     if (lobbies[lobby]) {
-        const punkte = lobbies[lobby].punkte && lobbies[lobby].punkte[spieler] ? lobbies[lobby].punkte[spieler] : 0;
+        const punkteObj = lobbies[lobby].punkte || {};
+        // Array mit Objekten: [{spieler: name, punkte: zahl}, ...]
+        const punkteArray = Object.keys(punkteObj).map(spieler => ({
+            spieler,
+            punkte: punkteObj[spieler]
+        }));
         res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
-        res.send(punkte.toString());
+        res.send(punkteArray);
     } else {
         res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
         res.status(404).send("Lobby nicht gefunden");
