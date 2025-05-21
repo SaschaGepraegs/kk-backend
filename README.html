@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <title>API-Dokumentation – Lobby-System</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 2rem;
+      background-color: #f9f9f9;
+      color: #333;
+    }
+    h1, h2 {
+      color: #005588;
+    }
+    code {
+      background-color: #eee;
+      padding: 0.2em 0.4em;
+      border-radius: 4px;
+    }
+    .endpoint {
+      margin-bottom: 2em;
+    }
+    .method {
+      font-weight: bold;
+      color: #007700;
+    }
+    .get { color: #007700; }
+    .post { color: #cc6600; }
+  </style>
+</head>
+<body>
+
+  <h1>📘 API-Dokumentation – Lobby-System</h1>
+  <p>Diese API dient zur Verwaltung von Multiplayer-Spiel-Lobbys. Spieler können sich registrieren, Lobbys erstellen, Punkte sammeln und den Spielstatus abfragen.</p>
+
+  <h2>🔗 Übersicht der Endpunkte</h2>
+
+  <div class="endpoint">
+    <p><span class="method get">GET</span> <code>/</code></p>
+    <p>Willkommensseite mit Liste aller verfügbaren APIs und Lobbys.</p>
+  </div>
+
+  <div class="endpoint">
+    <p><span class="method get">GET</span> <code>/gettest</code></p>
+    <p>Testverbindung, gibt „Danke!“ zurück.</p>
+  </div>
+
+  <div class="endpoint">
+    <p><span class="method post">POST</span> <code>/posttest</code></p>
+    <p>Test mit JSON-Body <code>{"test": "deinWert"}</code>, gibt Dankestext zurück.</p>
+  </div>
+
+  <div class="endpoint">
+    <p><span class="method post">POST</span> <code>/checkForPlayer</code></p>
+    <p>Prüft, ob ein Spieler in einer bestimmten Lobby ist. Body: <code>{"lobby": "123", "username": "Max"}</code></p>
+  </div>
+
+  <div class="endpoint">
+    <p><span class="method post">POST</span> <code>/registerLobby</code></p>
+    <p>Erstellt eine neue Lobby mit einem <code>gamepin</code> als ID.</p>
+  </div>
+
+  <div class="endpoint">
+    <p><span class="method get">GET</span> <code>/getAllPlayersOfLobby?lobby=123</code></p>
+    <p>Gibt alle Spieler einer Lobby zurück.</p>
+  </div>
+
+  <div class="endpoint">
+    <p><span class="method get">GET</span> <code>/gehtsLos?lobby=123</code></p>
+    <p>Gibt <code>true</code> oder <code>false</code> zurück, je nachdem ob das Spiel gestartet wurde.</p>
+  </div>
+
+  <div class="endpoint">
+    <p><span class="method get">GET</span> <code>/losGehts?lobby=123</code></p>
+    <p>Startet das Spiel in einer Lobby.</p>
+  </div>
+
+  <div class="endpoint">
+    <p><span class="method post">POST</span> <code>/binDa</code></p>
+    <p>Registriert einen Spieler in einer Lobby. Body: <code>{"lobby": "123", "username": "Max"}</code></p>
+  </div>
+
+  <div class="endpoint">
+    <p><span class="method post">POST</span> <code>/finishCall</code></p>
+    <p>Markiert den Spieler als „fertig“. Speichert auch Zeitstempel.</p>
+  </div>
+
+  <div class="endpoint">
+    <p><span class="method get">GET</span> <code>/getFinishedPlayers?lobby=123</code></p>
+    <p>Gibt fertige Spieler und deren Zeitpunkte zurück.</p>
+  </div>
+
+  <div class="endpoint">
+    <p><span class="method get">GET</span> <code>/getOpenLobbyList</code></p>
+    <p>Gibt alle offenen Lobbys zurück.</p>
+  </div>
+
+  <div class="endpoint">
+    <p><span class="method get">GET</span> <code>/reset?lobby=123</code></p>
+    <p>Setzt eine Lobby zurück (alle Spieler, Punkte, Status).</p>
+  </div>
+
+  <div class="endpoint">
+    <p><span class="method get">GET</span> <code>/naechstesSpiel?lobby=123</code></p>
+    <p>Gibt die aktuelle Spiel-ID zurück (1–20) oder <code>false</code>.</p>
+  </div>
+
+  <div class="endpoint">
+    <p><span class="method get">GET</span> <code>/changeNaechstesSpiel?lobby=123&spielid=5</code></p>
+    <p>Setzt die aktuelle Spiel-ID. Setzt sich nach 10s zurück auf <code>null</code>.</p>
+  </div>
+
+  <div class="endpoint">
+    <p><span class="method get">GET</span> <code>/kfc_feedback_code</code></p>
+    <p>Generiert zufälligen KFC-Feedback-Code. Beispiel: <code>GER3181232405</code></p>
+  </div>
+
+  <div class="endpoint">
+    <p><span class="method get">GET</span> <code>/addPointsToPlayer?lobby=123&spieler=Max&punkte=10</code></p>
+    <p>Fügt einem Spieler Punkte hinzu.</p>
+  </div>
+
+  <div class="endpoint">
+    <p><span class="method get">GET</span> <code>/getPointsOfPlayer?lobby=123</code></p>
+    <p>Gibt die Punkte aller Spieler in einer Lobby zurück.</p>
+  </div>
+
+  <hr>
+  <p><strong>Hinweis:</strong> Alle Daten werden temporär in Redis gespeichert. Änderungen sind nicht dauerhaft, wenn Redis neu gestartet wird.</p>
+  <p><strong>Technischer Hinweis:</strong> Bitte stelle sicher, dass dein Server über die Umgebungsvariable <code>REDIS_URL</code> mit einem Redis-Server verbunden ist.</p>
+
+</body>
+</html>
