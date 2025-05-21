@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const app = express();
+const path = require('path');
 app.use(cors());
 app.use(express.json());
 
@@ -33,10 +34,8 @@ async function saveLobbies(lobbies) {
     }
 }
 
-app.get('/', async(req, res) => {
-    const lobbies = await getLobbies();
-    res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
-    res.send("<h1>Folgende Infos sind bekannt: </h1> <br> <p>Aktuelle Lobbys: </p>" + Object.keys(lobbies).join(", ") + "<br><h1>Folgende APIs sind verfügbar: </h1> <br> <p>/gettest</p> <p>/posttest</p> <p>/checkForPlayer</p> <p>/registerLobby</p> <p>/gehtsLos</p> <p>/losGehts</p> <p>/binDa</p> <p>/finishCall</p> <p>/getFinishedPlayers</p> <p>/reset</p> <p>/getOpenLobbyList</p> <p>/naechstesSpiel</p> <p>/changeNaechstesSpiel</p> <p>/kfc_feedback_code</p> <p>/addPointsToPlayer</p> <p>/getPointsOfPlayer</p>");
+app.get('/', function(req, res) {
+  res.sendFile(path.join(__dirname, '/doc.html'));
 });
 
 app.get('/gettest', (req, res) => {
