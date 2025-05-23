@@ -70,8 +70,8 @@ app.post('/registerLobby', async(req, res) => {
             finishedPlayers: [],
             finishedPlayersTiming: [],
             gehtslos: false,
-            aktuellesSpiel: null, // Neues Feld für aktuelle Spiel-ID
-            punkte: {} // Neues Feld für Punkte pro Spieler
+            naechsteSpiele: [], // Warteschlange für Spiele
+            punkte: {}
         };
         await saveLobbies(lobbies);
     }
@@ -182,8 +182,8 @@ app.get('/reset', async(req, res) => {
             finishedPlayers: [],
             finishedPlayersTiming: [],
             gehtslos: false,
-            aktuellesSpiel: null, // Korrigiert: false → null
-            punkte: {} // Punkte auch zurücksetzen
+            naechsteSpiele: [], // Warteschlange zurücksetzen
+            punkte: {}
         };
         await saveLobbies(lobbies);
         res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
@@ -198,13 +198,9 @@ app.get('/naechstesSpiel', async(req, res) => {
     const { lobby } = req.query;
     const lobbies = await getLobbies();
     if (lobbies[lobby]) {
-        const aktuellesSpiel = lobbies[lobby].aktuellesSpiel;
+        const naechsteSpiele = lobbies[lobby].naechsteSpiele || [];
         res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
-        if (typeof aktuellesSpiel === "number" && aktuellesSpiel >= 1 && aktuellesSpiel <= 20) {
-            res.send(aktuellesSpiel.toString());
-        } else {
-            res.send(false);
-        }
+        res.send(naechsteSpiele);
     } else {
         res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
         res.status(404).send("Lobby nicht gefunden");
@@ -215,26 +211,20 @@ app.get('/changeNaechstesSpiel', async(req, res) => {
     const { lobby, spielid } = req.query;
     const lobbies = await getLobbies();
     if (lobbies[lobby]) {
+        if (!lobbies[lobby].naechsteSpiele) {
+            lobbies[lobby].naechsteSpiele = [];
+        }
         const id = parseInt(spielid, 10);
         if (Number.isInteger(id) && id >= 1 && id <= 20) {
-            lobbies[lobby].aktuellesSpiel = id;
+            lobbies[lobby].naechsteSpiele.push(id);
             await saveLobbies(lobbies);
             res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
-            res.send("aktuellesSpiel geändert auf " + id);
-            // Nach 10 Sekunden aktuellesSpiel wieder auf null setzen und speichern und so zeug
-            setTimeout(async () => {
-                const lobbiesTimeout = await getLobbies();
-                if (lobbiesTimeout[lobby] && lobbiesTimeout[lobby].aktuellesSpiel === id) {
-                    lobbiesTimeout[lobby].aktuellesSpiel = null;
-                    await saveLobbies(lobbiesTimeout);
-                }
-            }, 10000);
-
+            res.send(lobbies[lobby].naechsteSpiele);
         } else if (spielid === "false" || spielid === "null") {
-            lobbies[lobby].aktuellesSpiel = null;
+            lobbies[lobby].naechsteSpiele = [];
             await saveLobbies(lobbies);
             res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
-            res.send("aktuellesSpiel auf null gesetzt");
+            res.send(lobbies[lobby].naechsteSpiele);
         } else {
             res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
             res.status(400).send("Ungültige Spiel-ID");
