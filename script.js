@@ -177,17 +177,10 @@ app.get('/reset', async(req, res) => {
     const { lobby } = req.query;
     const lobbies = await getLobbies();
     if (lobbies[lobby]) {
-        lobbies[lobby] = {
-            players: [],
-            finishedPlayers: [],
-            finishedPlayersTiming: [],
-            gehtslos: false,
-            naechsteSpiele: [], // Warteschlange zurücksetzen
-            punkte: {}
-        };
+        delete lobbies[lobby];
         await saveLobbies(lobbies);
         res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
-        res.send("Lobby erfolgreich resettet");
+        res.send("Lobby erfolgreich gelöscht");
     } else {
         res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
         res.status(404).send("Lobby nicht gefunden");
