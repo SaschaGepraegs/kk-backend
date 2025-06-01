@@ -281,4 +281,28 @@ app.get('/getPointsOfPlayer', async(req, res) => {
     }
 });
 
+app.get('/removePlayer', async(req, res) => {
+    const { lobby, spieler } = req.query;
+    const lobbies = await getLobbies();
+    if (lobbies[lobby]) {
+        // Spieler aus players entfernen
+        lobbies[lobby].players = (lobbies[lobby].players || []).filter(name => name !== spieler);
+        // Spieler aus finishedPlayers entfernen
+        lobbies[lobby].finishedPlayers = (lobbies[lobby].finishedPlayers || []).filter(name => name !== spieler);
+        // Punkte entfernen
+        if (lobbies[lobby].punkte && lobbies[lobby].punkte[spieler] !== undefined) {
+            delete lobbies[lobby].punkte[spieler];
+        }
+        // Optional: finishedPlayersTiming synchron halten (falls Reihenfolge relevant)
+        // Hier keine Änderung, da Zuordnung zu Spielern nicht eindeutig ist
+
+        await saveLobbies(lobbies);
+        res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+        res.send(`Spieler ${spieler} wurde aus Lobby ${lobby} entfernt.`);
+    } else {
+        res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+        res.status(404).send("Lobby nicht gefunden");
+    }
+});
+
 app.listen(3000);
