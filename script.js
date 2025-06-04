@@ -94,8 +94,9 @@ app.post('/registerLobby', async(req, res) => {
             finishedPlayers: [],
             finishedPlayersTiming: [],
             gehtslos: false,
-            naechsteSpiele: [], // Warteschlange für Spiele
-            punkte: {}
+            naechsteSpiele: [],
+            punkte: {},
+            imposterVotes: {} // Neu: Votes initialisieren
         };
         await saveLobbies(lobbies);
     }
@@ -154,6 +155,8 @@ app.post('/binDa', async(req, res) => {
             lobbies[lobby].players.push(username);
             // Imposter und Wort neu bestimmen
             assignImposterAndWord(lobbies[lobby]);
+            // Votes zurücksetzen
+            lobbies[lobby].imposterVotes = {};
             await saveLobbies(lobbies);
         }
         res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
@@ -318,6 +321,8 @@ app.get('/removePlayer', async(req, res) => {
         }
         // Imposter und Wort neu bestimmen
         assignImposterAndWord(lobbies[lobby]);
+        // Votes zurücksetzen
+        lobbies[lobby].imposterVotes = {};
         await saveLobbies(lobbies);
         res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
         res.send(`Spieler ${spieler} wurde aus Lobby ${lobby} entfernt.`);
@@ -327,22 +332,69 @@ app.get('/removePlayer', async(req, res) => {
     }
 });
 
-// Neuer Endpunkt: /istImposter
+// Neuer Endpunkt: /castImposterVote
+app.get('/castImposterVote', async(req, res) => {
+    const { lobby, elect } = req.query;
+    const lobbies = await getLobbies();
+    if (lobbies[lobby]) {
+        if (!lobbies[lobby].imposterVotes) {
+            lobbies[lobby].imposterVotes = {};
+        }
+        if (!lobbies[lobby].players.includes(elect)) {
+            res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+            res.status(400).send("Spieler nicht in Lobby");
+            return;
+        }
+        lobbies[lobby].imposterVotes[elect] = (lobbies[lobby].imposterVotes[elect] || 0) + 1;
+        await saveLobbies(lobbies);
+        res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+        res.send("Vote gezählt");
+    } else {
+        res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+        res.status(404).send("Lobby nicht gefunden");
+    }
+});
+
+// Neuer Endpunkt: /getImposterVoting
+app.get('/getImposterVoting', async(req, res) => {
+    const { lobby } = req.query;
+    const lobbies = await getLobbies();
+    if (lobbies[lobby]) {
+        const votes = lobbies[lobby].imposterVotes || {};
+        const players = lobbies[lobby].players || [];
+        const totalVotes = Object.values(votes).reduce((a, b) => a + b, 0) || 0;
+        const result = players.map(spieler => ({
+            spieler,
+            prozent: totalVotes > 0 ? Math.round((votes[spieler] || 0) / totalVotes * 100) : 0
+        }));
+        res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+        res.send(result);
+    } else {
+        res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+        res.status(404).send("Lobby nicht gefunden");
+    }
+});
+
+// Angepasster Endpunkt: /istImposter
 app.get('/istImposter', async(req, res) => {
     const { lobby, spieler } = req.query;
     const lobbies = await getLobbies();
     if (lobbies[lobby]) {
         if (!lobbies[lobby].imposter || !lobbies[lobby].crewmateWord) {
-            // Falls noch nicht gesetzt, jetzt setzen
             assignImposterAndWord(lobbies[lobby]);
             await saveLobbies(lobbies);
         }
-        if ((lobbies[lobby].imposter || []).includes(spieler)) {
+        const imposters = lobbies[lobby].imposter || [];
+        if (imposters.includes(spieler)) {
+            // Imposter-Array: ["imposter", <andererImposterName|du bist der einzige>]
+            let otherImposter = imposters.filter(name => name !== spieler);
+            let info = otherImposter.length > 0 ? otherImposter[0] : "du bist der einzige";
             res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
-            res.send(false);
+            res.send(["imposter", info]);
         } else {
+            // Crewmate-Array: ["crewmate", <wort>]
             res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
-            res.send(lobbies[lobby].crewmateWord || false);
+            res.send(["crewmate", lobbies[lobby].crewmateWord || ""]);
         }
     } else {
         res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
