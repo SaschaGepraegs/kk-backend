@@ -98,17 +98,17 @@
 
   <div class="endpoint">
     <p><span class="method get">GET</span> <code>/reset?lobby=123</code></p>
-    <p>Setzt eine Lobby zurück (alle Spieler, Punkte, Status).</p>
+    <p>Löscht eine Lobby komplett.</p>
   </div>
 
   <div class="endpoint">
     <p><span class="method get">GET</span> <code>/naechstesSpiel?lobby=123</code></p>
-    <p>Gibt die aktuelle Spiel-ID zurück (1–20) oder <code>false</code>.</p>
+    <p>Gibt die Warteschlange der nächsten Spiele als Array zurück.</p>
   </div>
 
   <div class="endpoint">
     <p><span class="method get">GET</span> <code>/changeNaechstesSpiel?lobby=123&spielid=5</code></p>
-    <p>Setzt die aktuelle Spiel-ID. Setzt sich nach 10s zurück auf <code>null</code>.</p>
+    <p>Fügt ein Spiel zur Warteschlange hinzu. Mit <code>spielid=false</code> wird die Warteschlange geleert.</p>
   </div>
 
   <div class="endpoint">
@@ -123,7 +123,27 @@
 
   <div class="endpoint">
     <p><span class="method get">GET</span> <code>/getPointsOfPlayer?lobby=123</code></p>
-    <p>Gibt die Punkte aller Spieler in einer Lobby zurück.</p>
+    <p>Gibt ein Array aller Spieler und deren Punktestand in einer Lobby zurück.</p>
+  </div>
+
+  <div class="endpoint">
+    <p><span class="method get">GET</span> <code>/removePlayer?lobby=123&spieler=Max</code></p>
+    <p>Entfernt einen Spieler aus der Lobby (inkl. Punkte und Status).</p>
+  </div>
+
+  <div class="endpoint">
+    <p><span class="method get">GET</span> <code>/istImposter?lobby=123&spieler=Max</code></p>
+    <p>Gibt <code>["imposter", "Name"]</code> (Name des anderen Imposters oder <code>"du bist der einzige"</code>) oder <code>["crewmate", "Wort"]</code> (gemeinsames Wort für alle Crewmates) zurück.</p>
+  </div>
+
+  <div class="endpoint">
+    <p><span class="method get">GET</span> <code>/castImposterVote?lobby=123&elect=Max</code></p>
+    <p>Stimmt für einen Spieler als Imposter ab.</p>
+  </div>
+
+  <div class="endpoint">
+    <p><span class="method get">GET</span> <code>/getImposterVoting?lobby=123</code></p>
+    <p>Gibt ein Array mit allen Spielern und deren prozentualem Stimmenanteil zurück.</p>
   </div>
 
   <hr>
