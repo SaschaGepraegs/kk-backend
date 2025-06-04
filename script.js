@@ -96,7 +96,8 @@ app.post('/registerLobby', async(req, res) => {
             gehtslos: false,
             naechsteSpiele: [],
             punkte: {},
-            imposterVotes: {} // Neu: Votes initialisieren
+            imposterVotes: {}, // Neu: Votes initialisieren
+            removedPlayers:[] // Neu: Liste für aus der Lobby entfernte Spieler
         };
         await saveLobbies(lobbies);
     }
@@ -151,7 +152,7 @@ app.post('/binDa', async(req, res) => {
     const { lobby, username } = req.body;
     const lobbies = await getLobbies();
     if (lobbies[lobby]) {
-        if (!lobbies[lobby].players.includes(username)) {
+        if (!lobbies[lobby].players.includes(username) && !lobbies[lobby].removedPlayers.includes(username)) { // Überprüfen, ob sich der Spieler schon im Spiel befindet und nicht schon entfernt wurde
             lobbies[lobby].players.push(username);
             // Imposter und Wort neu bestimmen
             assignImposterAndWord(lobbies[lobby]);
@@ -316,6 +317,11 @@ app.get('/removePlayer', async(req, res) => {
     if (lobbies[lobby]) {
         lobbies[lobby].players = (lobbies[lobby].players || []).filter(name => name !== spieler);
         lobbies[lobby].finishedPlayers = (lobbies[lobby].finishedPlayers || []).filter(name => name !== spieler);
+        // Neu: Entfernten Spieler zur Liste der entfernten Spieler hinzufügen
+        if(!lobbies[lobby].removedPlayers.includes(spieler)) { // zuerst prüfen, ob der Spieler nicht schon entfernt wurde
+            lobbies[lobby].removedPlayers.push(spieler); // und dann entfernten Spieler zur Liste hinzufügen
+        }
+        // Punkte des Spielers entfernen, falls vorhanden
         if (lobbies[lobby].punkte && lobbies[lobby].punkte[spieler] !== undefined) {
             delete lobbies[lobby].punkte[spieler];
         }
