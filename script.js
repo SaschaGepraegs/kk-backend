@@ -7,6 +7,13 @@ app.use(express.json());
 
 const Redis = require("ioredis");
 
+// Begriffe für Crewmates
+const CREWMATE_WORDS = [
+    "Apfel", "Banane", "Kaktus", "Pyramide", "Schmetterling", "Rakete", "Känguru", "Wolke", "Bleistift", "Kaffee",
+    "Schnecke", "Trompete", "Keks", "Roboter", "Kaktus", "Kran", "Giraffe", "Komet", "Kirsche", "Koffer",
+    "Krokodil", "Kugel", "Kuh", "Kuchen", "Karte", "Kamel", "Käfer", "Kette", "Kissen", "Kanu"
+];
+
 // Hilfsfunktionen für Redis
 async function getLobbies() {
     try {
@@ -32,6 +39,23 @@ async function saveLobbies(lobbies) {
     } catch (err) {
         console.error("Fehler beim Speichern in Redis:", err.message);
     }
+}
+
+// Hilfsfunktion: Imposter und Crewmate-Wort neu bestimmen
+function assignImposterAndWord(lobbyObj) {
+    const players = lobbyObj.players || [];
+    if (players.length === 0) {
+        lobbyObj.imposter = [];
+        lobbyObj.crewmateWord = null;
+        return;
+    }
+    // Anzahl Imposter bestimmen
+    const imposterCount = players.length > 6 ? 2 : 1;
+    // Spieler zufällig mischen
+    const shuffled = [...players].sort(() => Math.random() - 0.5);
+    lobbyObj.imposter = shuffled.slice(0, imposterCount);
+    // Wort zufällig wählen
+    lobbyObj.crewmateWord = CREWMATE_WORDS[Math.floor(Math.random() * CREWMATE_WORDS.length)];
 }
 
 app.get('/', function(req, res) {
@@ -128,6 +152,8 @@ app.post('/binDa', async(req, res) => {
     if (lobbies[lobby]) {
         if (!lobbies[lobby].players.includes(username)) {
             lobbies[lobby].players.push(username);
+            // Imposter und Wort neu bestimmen
+            assignImposterAndWord(lobbies[lobby]);
             await saveLobbies(lobbies);
         }
         res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
@@ -285,20 +311,39 @@ app.get('/removePlayer', async(req, res) => {
     const { lobby, spieler } = req.query;
     const lobbies = await getLobbies();
     if (lobbies[lobby]) {
-        // Spieler aus players entfernen
         lobbies[lobby].players = (lobbies[lobby].players || []).filter(name => name !== spieler);
-        // Spieler aus finishedPlayers entfernen
         lobbies[lobby].finishedPlayers = (lobbies[lobby].finishedPlayers || []).filter(name => name !== spieler);
-        // Punkte entfernen
         if (lobbies[lobby].punkte && lobbies[lobby].punkte[spieler] !== undefined) {
             delete lobbies[lobby].punkte[spieler];
         }
-        // Optional: finishedPlayersTiming synchron halten (falls Reihenfolge relevant)
-        // Hier keine Änderung, da Zuordnung zu Spielern nicht eindeutig ist
-
+        // Imposter und Wort neu bestimmen
+        assignImposterAndWord(lobbies[lobby]);
         await saveLobbies(lobbies);
         res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
         res.send(`Spieler ${spieler} wurde aus Lobby ${lobby} entfernt.`);
+    } else {
+        res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+        res.status(404).send("Lobby nicht gefunden");
+    }
+});
+
+// Neuer Endpunkt: /istImposter
+app.get('/istImposter', async(req, res) => {
+    const { lobby, spieler } = req.query;
+    const lobbies = await getLobbies();
+    if (lobbies[lobby]) {
+        if (!lobbies[lobby].imposter || !lobbies[lobby].crewmateWord) {
+            // Falls noch nicht gesetzt, jetzt setzen
+            assignImposterAndWord(lobbies[lobby]);
+            await saveLobbies(lobbies);
+        }
+        if ((lobbies[lobby].imposter || []).includes(spieler)) {
+            res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+            res.send(false);
+        } else {
+            res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+            res.send(lobbies[lobby].crewmateWord || false);
+        }
     } else {
         res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
         res.status(404).send("Lobby nicht gefunden");
