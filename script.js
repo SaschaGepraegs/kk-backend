@@ -96,8 +96,9 @@ app.post('/registerLobby', async(req, res) => {
             gehtslos: false,
             naechsteSpiele: [],
             punkte: {},
-            imposterVotes: {}, // Neu: Votes initialisieren
-            removedPlayers:[] // Neu: Liste für aus der Lobby entfernte Spieler
+            imposterVotes: {},
+            removedPlayers: [],
+            revealedImposters: [] // Neu: enttarnte Imposter
         };
         await saveLobbies(lobbies);
     }
@@ -402,6 +403,47 @@ app.get('/istImposter', async(req, res) => {
             res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
             res.send(["crewmate", lobbies[lobby].crewmateWord || ""]);
         }
+    } else {
+        res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+        res.status(404).send("Lobby nicht gefunden");
+    }
+});
+
+app.get('/revealImposter', async(req, res) => {
+    const { lobby, spieler } = req.query;
+    const lobbies = await getLobbies();
+    if (lobbies[lobby]) {
+        if (!lobbies[lobby].revealedImposters) {
+            lobbies[lobby].revealedImposters = [];
+        }
+        if (
+            lobbies[lobby].imposter &&
+            lobbies[lobby].imposter.includes(spieler) &&
+            !lobbies[lobby].revealedImposters.includes(spieler)
+        ) {
+            lobbies[lobby].revealedImposters.push(spieler);
+            await saveLobbies(lobbies);
+            res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+            res.send(`Imposter ${spieler} wurde als enttarnt registriert.`);
+        } else {
+            res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+            res.send(`Spieler ${spieler} ist kein Imposter oder bereits enttarnt.`);
+        }
+    } else {
+        res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+        res.status(404).send("Lobby nicht gefunden");
+    }
+});
+
+app.get('/areAllImpostersRevealed', async(req, res) => {
+    const { lobby } = req.query;
+    const lobbies = await getLobbies();
+    if (lobbies[lobby]) {
+        const imposters = lobbies[lobby].imposter || [];
+        const revealed = lobbies[lobby].revealedImposters || [];
+        const allRevealed = imposters.length > 0 && imposters.every(name => revealed.includes(name));
+        res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+        res.send(allRevealed);
     } else {
         res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
         res.status(404).send("Lobby nicht gefunden");

@@ -10,7 +10,7 @@
       background-color: #f9f9f9;
       color: #333;
     }
-    h1, h2 {
+    h1, h2, h3 {
       color: #005588;
     }
     code {
@@ -19,7 +19,7 @@
       border-radius: 4px;
     }
     .endpoint {
-      margin-bottom: 2em;
+      margin-bottom: 1.5em;
     }
     .method {
       font-weight: bold;
@@ -27,129 +27,174 @@
     }
     .get { color: #007700; }
     .post { color: #cc6600; }
+    .category {
+      margin-top: 2.5em;
+      margin-bottom: 1em;
+      border-bottom: 2px solid #00558822;
+      padding-bottom: 0.3em;
+    }
+    .sticky-search {
+      position: sticky;
+      top: 0;
+      background: #f9f9f9;
+      padding: 1em 0 1em 0;
+      z-index: 100;
+      border-bottom: 1px solid #ddd;
+    }
+    .sticky-search input {
+      width: 100%;
+      padding: 0.5em;
+      font-size: 1.1em;
+      border: 1px solid #bbb;
+      border-radius: 5px;
+      box-sizing: border-box;
+    }
+    .hidden {
+      display: none;
+    }
   </style>
+  <script>
+    // Einfache Suchfunktion für Endpunkte
+    window.addEventListener('DOMContentLoaded', () => {
+      const search = document.getElementById('search');
+      search.addEventListener('input', function() {
+        const val = this.value.toLowerCase();
+        document.querySelectorAll('.endpoint').forEach(ep => {
+          ep.classList.toggle('hidden', !ep.textContent.toLowerCase().includes(val));
+        });
+      });
+    });
+  </script>
 </head>
 <body>
 
-  <h1>📘 API-Dokumentation – Lobby-System</h1>
-  <p>Diese API dient zur Verwaltung von Multiplayer-Spiel-Lobbys. Spieler können sich registrieren, Lobbys erstellen, Punkte sammeln und den Spielstatus abfragen.</p>
+  <div class="sticky-search">
+    <input id="search" type="text" placeholder="🔍 Endpunkt oder Begriff suchen...">
+  </div>
 
-  <h2>🔗 Übersicht der Endpunkte</h2>
+  <h1>📘 API-Dokumentation – Lobby-System</h1>
+  <p>Diese API dient zur Verwaltung von Multiplayer-Spiel-Lobbys. Spieler können sich registrieren, Lobbys erstellen, Punkte sammeln, Imposter-Voting durchführen und den Spielstatus abfragen.</p>
+
+  <h2 class="category">🔑 Lobby-Management</h2>
 
   <div class="endpoint">
     <p><span class="method get">GET</span> <code>/</code></p>
     <p>Willkommensseite mit Liste aller verfügbaren APIs und Lobbys.</p>
   </div>
-
-  <div class="endpoint">
-    <p><span class="method get">GET</span> <code>/gettest</code></p>
-    <p>Testverbindung, gibt „Danke!“ zurück.</p>
-  </div>
-
-  <div class="endpoint">
-    <p><span class="method post">POST</span> <code>/posttest</code></p>
-    <p>Test mit JSON-Body <code>{"test": "deinWert"}</code>, gibt Dankestext zurück.</p>
-  </div>
-
-  <div class="endpoint">
-    <p><span class="method post">POST</span> <code>/checkForPlayer</code></p>
-    <p>Prüft, ob ein Spieler in einer bestimmten Lobby ist. Body: <code>{"lobby": "123", "username": "Max"}</code></p>
-  </div>
-
   <div class="endpoint">
     <p><span class="method post">POST</span> <code>/registerLobby</code></p>
     <p>Erstellt eine neue Lobby mit einem <code>gamepin</code> als ID.</p>
   </div>
-
-  <div class="endpoint">
-    <p><span class="method get">GET</span> <code>/getAllPlayersOfLobby?lobby=123</code></p>
-    <p>Gibt alle Spieler einer Lobby zurück.</p>
-  </div>
-
-  <div class="endpoint">
-    <p><span class="method get">GET</span> <code>/gehtsLos?lobby=123</code></p>
-    <p>Gibt <code>true</code> oder <code>false</code> zurück, je nachdem ob das Spiel gestartet wurde.</p>
-  </div>
-
-  <div class="endpoint">
-    <p><span class="method get">GET</span> <code>/losGehts?lobby=123</code></p>
-    <p>Startet das Spiel in einer Lobby.</p>
-  </div>
-
-  <div class="endpoint">
-    <p><span class="method post">POST</span> <code>/binDa</code></p>
-    <p>Registriert einen Spieler in einer Lobby. Body: <code>{"lobby": "123", "username": "Max"}</code></p>
-  </div>
-
-  <div class="endpoint">
-    <p><span class="method post">POST</span> <code>/finishCall</code></p>
-    <p>Markiert den Spieler als „fertig“. Speichert auch Zeitstempel.</p>
-  </div>
-
-  <div class="endpoint">
-    <p><span class="method get">GET</span> <code>/getFinishedPlayers?lobby=123</code></p>
-    <p>Gibt fertige Spieler und deren Zeitpunkte zurück.</p>
-  </div>
-
   <div class="endpoint">
     <p><span class="method get">GET</span> <code>/getOpenLobbyList</code></p>
     <p>Gibt alle offenen Lobbys zurück.</p>
   </div>
-
   <div class="endpoint">
     <p><span class="method get">GET</span> <code>/reset?lobby=123</code></p>
     <p>Löscht eine Lobby komplett.</p>
   </div>
 
+  <h2 class="category">👤 Spieler-Management</h2>
+
+  <div class="endpoint">
+    <p><span class="method post">POST</span> <code>/binDa</code></p>
+    <p>Registriert einen Spieler in einer Lobby. Body: <code>{"lobby": "123", "username": "Max"}</code></p>
+  </div>
+  <div class="endpoint">
+    <p><span class="method get">GET</span> <code>/getAllPlayersOfLobby?lobby=123</code></p>
+    <p>Gibt alle Spieler einer Lobby zurück.</p>
+  </div>
+  <div class="endpoint">
+    <p><span class="method get">GET</span> <code>/removePlayer?lobby=123&spieler=Max</code></p>
+    <p>Entfernt einen Spieler aus der Lobby (inkl. Punkte und Status).</p>
+  </div>
+  <div class="endpoint">
+    <p><span class="method post">POST</span> <code>/checkForPlayer</code></p>
+    <p>Prüft, ob ein Spieler in einer bestimmten Lobby ist. Body: <code>{"lobby": "123", "username": "Max"}</code></p>
+  </div>
+
+  <h2 class="category">🎮 Spiel-Status & Ablauf</h2>
+
+  <div class="endpoint">
+    <p><span class="method get">GET</span> <code>/gehtsLos?lobby=123</code></p>
+    <p>Gibt <code>true</code> oder <code>false</code> zurück, je nachdem ob das Spiel gestartet wurde.</p>
+  </div>
+  <div class="endpoint">
+    <p><span class="method get">GET</span> <code>/losGehts?lobby=123</code></p>
+    <p>Startet das Spiel in einer Lobby.</p>
+  </div>
+  <div class="endpoint">
+    <p><span class="method post">POST</span> <code>/finishCall</code></p>
+    <p>Markiert den Spieler als „fertig“. Speichert auch Zeitstempel.</p>
+  </div>
+  <div class="endpoint">
+    <p><span class="method get">GET</span> <code>/getFinishedPlayers?lobby=123</code></p>
+    <p>Gibt fertige Spieler und deren Zeitpunkte zurück.</p>
+  </div>
+
+  <h2 class="category">🕹️ Spiel-Warteschlange</h2>
+
   <div class="endpoint">
     <p><span class="method get">GET</span> <code>/naechstesSpiel?lobby=123</code></p>
     <p>Gibt die Warteschlange der nächsten Spiele als Array zurück.</p>
   </div>
-
   <div class="endpoint">
     <p><span class="method get">GET</span> <code>/changeNaechstesSpiel?lobby=123&spielid=5</code></p>
     <p>Fügt ein Spiel zur Warteschlange hinzu. Mit <code>spielid=false</code> wird die Warteschlange geleert.</p>
   </div>
 
-  <div class="endpoint">
-    <p><span class="method get">GET</span> <code>/kfc_feedback_code</code></p>
-    <p>Generiert zufälligen KFC-Feedback-Code. Beispiel: <code>GER3181232405</code></p>
-  </div>
+  <h2 class="category">🏆 Punkte-System</h2>
 
   <div class="endpoint">
     <p><span class="method get">GET</span> <code>/addPointsToPlayer?lobby=123&spieler=Max&punkte=10</code></p>
     <p>Fügt einem Spieler Punkte hinzu.</p>
   </div>
-
   <div class="endpoint">
     <p><span class="method get">GET</span> <code>/getPointsOfPlayer?lobby=123</code></p>
     <p>Gibt ein Array aller Spieler und deren Punktestand in einer Lobby zurück.</p>
   </div>
 
-  <div class="endpoint">
-    <p><span class="method get">GET</span> <code>/removePlayer?lobby=123&spieler=Max</code></p>
-    <p>Entfernt einen Spieler aus der Lobby (inkl. Punkte und Status).</p>
-  </div>
+  <h2 class="category">🕵️ Imposter & Voting</h2>
 
   <div class="endpoint">
     <p><span class="method get">GET</span> <code>/istImposter?lobby=123&spieler=Max</code></p>
     <p>Gibt <code>["imposter", "Name"]</code> (Name des anderen Imposters oder <code>"du bist der einzige"</code>) oder <code>["crewmate", "Wort"]</code> (gemeinsames Wort für alle Crewmates) zurück.</p>
   </div>
-
   <div class="endpoint">
     <p><span class="method get">GET</span> <code>/castImposterVote?lobby=123&elect=Max</code></p>
     <p>Stimmt für einen Spieler als Imposter ab.</p>
   </div>
-
   <div class="endpoint">
     <p><span class="method get">GET</span> <code>/getImposterVoting?lobby=123</code></p>
     <p>Gibt ein Array mit allen Spielern und deren prozentualem Stimmenanteil zurück.</p>
+  </div>
+  <div class="endpoint">
+    <p><span class="method get">GET</span> <code>/revealImposter?lobby=123&spieler=Max</code></p>
+    <p>Registriert, dass ein Imposter enttarnt wurde. Nur Imposter können enttarnt werden.</p>
+  </div>
+  <div class="endpoint">
+    <p><span class="method get">GET</span> <code>/areAllImpostersRevealed?lobby=123</code></p>
+    <p>Gibt <code>true</code> zurück, wenn alle Imposter enttarnt wurden, sonst <code>false</code>.</p>
+  </div>
+
+  <h2 class="category">🛠️ Sonstiges</h2>
+
+  <div class="endpoint">
+    <p><span class="method get">GET</span> <code>/gettest</code></p>
+    <p>Testverbindung, gibt „Danke!“ zurück.</p>
+  </div>
+  <div class="endpoint">
+    <p><span class="method post">POST</span> <code>/posttest</code></p>
+    <p>Test mit JSON-Body <code>{"test": "deinWert"}</code>, gibt Dankestext zurück.</p>
+  </div>
+  <div class="endpoint">
+    <p><span class="method get">GET</span> <code>/kfc_feedback_code</code></p>
+    <p>Generiert zufälligen KFC-Feedback-Code. Beispiel: <code>GER3181232405</code></p>
   </div>
 
   <hr>
   <p><strong>Hinweis:</strong> Alle Daten werden dauerhaft in einer Datenbank gespeichert.</p>
   <a href="https://klickkrawall.netlify.app/">Zurück zu KlickKrawall</a>
-  <a href="https://github.com/SaschaGepraegs/kk-frontend">Zum Repo</a>
 
 </body>
 </html>
