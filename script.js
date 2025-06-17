@@ -450,4 +450,66 @@ app.get('/areAllImpostersRevealed', async(req, res) => {
     }
 });
 
+// Sammel-Endpunkt: Lobby-Info
+app.get('/lobbyInfo', async(req, res) => {
+    const { lobby } = req.query;
+    const lobbies = await getLobbies();
+    if (lobbies[lobby]) {
+        const lobbyObj = lobbies[lobby];
+        res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+        res.send({
+            players: lobbyObj.players || [],
+            finishedPlayers: lobbyObj.finishedPlayers || [],
+            finishedPlayersTiming: lobbyObj.finishedPlayersTiming || [],
+            gehtslos: lobbyObj.gehtslos || false,
+            naechsteSpiele: lobbyObj.naechsteSpiele || [],
+            punkte: lobbyObj.punkte || {},
+            imposterVotes: lobbyObj.imposterVotes || {},
+            removedPlayers: lobbyObj.removedPlayers || [],
+            revealedImposters: lobbyObj.revealedImposters || [],
+            imposter: lobbyObj.imposter || [],
+            crewmateWord: lobbyObj.crewmateWord || null
+        });
+    } else {
+        res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+        res.status(404).send("Lobby nicht gefunden");
+    }
+});
+
+// Sammel-Endpunkt: Spieler-Info
+app.get('/playerInfo', async(req, res) => {
+    const { lobby, spieler } = req.query;
+    const lobbies = await getLobbies();
+    if (lobbies[lobby]) {
+        const lobbyObj = lobbies[lobby];
+        const isImposter = (lobbyObj.imposter || []).includes(spieler);
+        let roleInfo;
+        if (isImposter) {
+            let otherImposter = (lobbyObj.imposter || []).filter(name => name !== spieler);
+            roleInfo = {
+                rolle: "imposter",
+                partner: otherImposter.length > 0 ? otherImposter[0] : "du bist der einzige"
+            };
+        } else {
+            roleInfo = {
+                rolle: "crewmate",
+                wort: lobbyObj.crewmateWord || ""
+            };
+        }
+        res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+        res.send({
+            name: spieler,
+            punkte: (lobbyObj.punkte && lobbyObj.punkte[spieler]) || 0,
+            finished: (lobbyObj.finishedPlayers || []).includes(spieler),
+            removed: (lobbyObj.removedPlayers || []).includes(spieler),
+            imposterVote: (lobbyObj.imposterVotes && lobbyObj.imposterVotes[spieler]) || 0,
+            revealed: (lobbyObj.revealedImposters || []).includes(spieler),
+            ...roleInfo
+        });
+    } else {
+        res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+        res.status(404).send("Lobby nicht gefunden");
+    }
+});
+
 app.listen(3000);

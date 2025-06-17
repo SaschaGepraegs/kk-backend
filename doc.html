@@ -75,23 +75,96 @@
   <h1>📘 API-Dokumentation – Lobby-System</h1>
   <p>Diese API dient zur Verwaltung von Multiplayer-Spiel-Lobbys. Spieler können sich registrieren, Lobbys erstellen, Punkte sammeln, Imposter-Voting durchführen und den Spielstatus abfragen.</p>
 
+  <h2 class="category">🔄 Sammel-Endpunkte (empfohlen)</h2>
+
+  <div class="endpoint">
+    <p><span class="method get">GET</span> <code>/lobbyInfo?lobby=123</code></p>
+    <p>Gibt alle Informationen einer Lobby als Objekt zurück (Spieler, Punkte, Status, Warteschlange, Rollen, etc.).</p>
+    <details>
+      <summary>Beispieloutput</summary>
+      <pre>
+{
+  "players": ["Max", "Anna"],
+  "finishedPlayers": ["Anna"],
+  "finishedPlayersTiming": [1710000000],
+  "gehtslos": true,
+  "naechsteSpiele": [2, 5],
+  "punkte": {"Max": 10, "Anna": 15},
+  "imposterVotes": {"Max": 1},
+  "removedPlayers": [],
+  "revealedImposters": ["Max"],
+  "imposter": ["Max", "Anna"],
+  "crewmateWord": "Kaktus"
+}
+      </pre>
+    </details>
+  </div>
+
+  <div class="endpoint">
+    <p><span class="method get">GET</span> <code>/playerInfo?lobby=123&spieler=Max</code></p>
+    <p>Gibt alle Infos zu einem Spieler in einer Lobby zurück (Punkte, Status, Rolle, etc.).</p>
+    <details>
+      <summary>Beispieloutput</summary>
+      <pre>
+{
+  "name": "Max",
+  "punkte": 10,
+  "finished": false,
+  "removed": false,
+  "imposterVote": 1,
+  "revealed": true,
+  "rolle": "imposter",
+  "partner": "Anna"
+}
+      </pre>
+    </details>
+  </div>
+
+  <div class="endpoint">
+    <p><strong>Hinweis:</strong> Die meisten Einzelabfragen (z.B. <code>/getAllPlayersOfLobby</code>, <code>/getPointsOfPlayer</code>, <code>/gehtsLos</code>, <code>/naechstesSpiel</code>, <code>/getImposterVoting</code>, <code>/istImposter</code>, etc.) können durch <code>/lobbyInfo</code> bzw. <code>/playerInfo</code> ersetzt werden.</p>
+  </div>
+
   <h2 class="category">🔑 Lobby-Management</h2>
 
   <div class="endpoint">
     <p><span class="method get">GET</span> <code>/</code></p>
     <p>Willkommensseite mit Liste aller verfügbaren APIs und Lobbys.</p>
+    <details>
+      <summary>Beispieloutput</summary>
+      <pre>
+HTML-Seite mit API-Übersicht
+      </pre>
+    </details>
   </div>
   <div class="endpoint">
     <p><span class="method post">POST</span> <code>/registerLobby</code></p>
     <p>Erstellt eine neue Lobby mit einem <code>gamepin</code> als ID.</p>
+    <details>
+      <summary>Beispieloutput</summary>
+      <pre>
+["123", "456", "789"]
+      </pre>
+    </details>
   </div>
   <div class="endpoint">
     <p><span class="method get">GET</span> <code>/getOpenLobbyList</code></p>
     <p>Gibt alle offenen Lobbys zurück.</p>
+    <details>
+      <summary>Beispieloutput</summary>
+      <pre>
+["123", "456"]
+      </pre>
+    </details>
   </div>
   <div class="endpoint">
     <p><span class="method get">GET</span> <code>/reset?lobby=123</code></p>
     <p>Löscht eine Lobby komplett.</p>
+    <details>
+      <summary>Beispieloutput</summary>
+      <pre>
+Lobby erfolgreich gelöscht
+      </pre>
+    </details>
   </div>
 
   <h2 class="category">👤 Spieler-Management</h2>
@@ -99,18 +172,42 @@
   <div class="endpoint">
     <p><span class="method post">POST</span> <code>/binDa</code></p>
     <p>Registriert einen Spieler in einer Lobby. Body: <code>{"lobby": "123", "username": "Max"}</code></p>
+    <details>
+      <summary>Beispieloutput</summary>
+      <pre>
+["Max", "Anna"]
+      </pre>
+    </details>
   </div>
   <div class="endpoint">
     <p><span class="method get">GET</span> <code>/getAllPlayersOfLobby?lobby=123</code></p>
     <p>Gibt alle Spieler einer Lobby zurück.</p>
+    <details>
+      <summary>Beispieloutput</summary>
+      <pre>
+["Max", "Anna"]
+      </pre>
+    </details>
   </div>
   <div class="endpoint">
     <p><span class="method get">GET</span> <code>/removePlayer?lobby=123&spieler=Max</code></p>
     <p>Entfernt einen Spieler aus der Lobby (inkl. Punkte und Status).</p>
+    <details>
+      <summary>Beispieloutput</summary>
+      <pre>
+Spieler Max wurde aus Lobby 123 entfernt.
+      </pre>
+    </details>
   </div>
   <div class="endpoint">
     <p><span class="method post">POST</span> <code>/checkForPlayer</code></p>
     <p>Prüft, ob ein Spieler in einer bestimmten Lobby ist. Body: <code>{"lobby": "123", "username": "Max"}</code></p>
+    <details>
+      <summary>Beispieloutput</summary>
+      <pre>
+true
+      </pre>
+    </details>
   </div>
 
   <h2 class="category">🎮 Spiel-Status & Ablauf</h2>
@@ -118,18 +215,42 @@
   <div class="endpoint">
     <p><span class="method get">GET</span> <code>/gehtsLos?lobby=123</code></p>
     <p>Gibt <code>true</code> oder <code>false</code> zurück, je nachdem ob das Spiel gestartet wurde.</p>
+    <details>
+      <summary>Beispieloutput</summary>
+      <pre>
+true
+      </pre>
+    </details>
   </div>
   <div class="endpoint">
     <p><span class="method get">GET</span> <code>/losGehts?lobby=123</code></p>
     <p>Startet das Spiel in einer Lobby.</p>
+    <details>
+      <summary>Beispieloutput</summary>
+      <pre>
+oke
+      </pre>
+    </details>
   </div>
   <div class="endpoint">
     <p><span class="method post">POST</span> <code>/finishCall</code></p>
     <p>Markiert den Spieler als „fertig“. Speichert auch Zeitstempel.</p>
+    <details>
+      <summary>Beispieloutput</summary>
+      <pre>
+["Anna"]
+      </pre>
+    </details>
   </div>
   <div class="endpoint">
     <p><span class="method get">GET</span> <code>/getFinishedPlayers?lobby=123</code></p>
     <p>Gibt fertige Spieler und deren Zeitpunkte zurück.</p>
+    <details>
+      <summary>Beispieloutput</summary>
+      <pre>
+[["Anna"], [1710000000]]
+      </pre>
+    </details>
   </div>
 
   <h2 class="category">🕹️ Spiel-Warteschlange</h2>
@@ -137,10 +258,22 @@
   <div class="endpoint">
     <p><span class="method get">GET</span> <code>/naechstesSpiel?lobby=123</code></p>
     <p>Gibt die Warteschlange der nächsten Spiele als Array zurück.</p>
+    <details>
+      <summary>Beispieloutput</summary>
+      <pre>
+[2, 5]
+      </pre>
+    </details>
   </div>
   <div class="endpoint">
     <p><span class="method get">GET</span> <code>/changeNaechstesSpiel?lobby=123&spielid=5</code></p>
     <p>Fügt ein Spiel zur Warteschlange hinzu. Mit <code>spielid=false</code> wird die Warteschlange geleert.</p>
+    <details>
+      <summary>Beispieloutput</summary>
+      <pre>
+[2, 5]
+      </pre>
+    </details>
   </div>
 
   <h2 class="category">🏆 Punkte-System</h2>
@@ -148,10 +281,25 @@
   <div class="endpoint">
     <p><span class="method get">GET</span> <code>/addPointsToPlayer?lobby=123&spieler=Max&punkte=10</code></p>
     <p>Fügt einem Spieler Punkte hinzu.</p>
+    <details>
+      <summary>Beispieloutput</summary>
+      <pre>
+Punkte von Max in Lobby 123: 10
+      </pre>
+    </details>
   </div>
   <div class="endpoint">
     <p><span class="method get">GET</span> <code>/getPointsOfPlayer?lobby=123</code></p>
     <p>Gibt ein Array aller Spieler und deren Punktestand in einer Lobby zurück.</p>
+    <details>
+      <summary>Beispieloutput</summary>
+      <pre>
+[
+  {"spieler": "Max", "punkte": 10},
+  {"spieler": "Anna", "punkte": 15}
+]
+      </pre>
+    </details>
   </div>
 
   <h2 class="category">🕵️ Imposter & Voting</h2>
@@ -159,22 +307,55 @@
   <div class="endpoint">
     <p><span class="method get">GET</span> <code>/istImposter?lobby=123&spieler=Max</code></p>
     <p>Gibt <code>["imposter", "Name"]</code> (Name des anderen Imposters oder <code>"du bist der einzige"</code>) oder <code>["crewmate", "Wort"]</code> (gemeinsames Wort für alle Crewmates) zurück.</p>
+    <details>
+      <summary>Beispieloutput</summary>
+      <pre>
+["imposter", "Anna"]
+      </pre>
+    </details>
   </div>
   <div class="endpoint">
     <p><span class="method get">GET</span> <code>/castImposterVote?lobby=123&elect=Max</code></p>
     <p>Stimmt für einen Spieler als Imposter ab.</p>
+    <details>
+      <summary>Beispieloutput</summary>
+      <pre>
+Vote gezählt
+      </pre>
+    </details>
   </div>
   <div class="endpoint">
     <p><span class="method get">GET</span> <code>/getImposterVoting?lobby=123</code></p>
     <p>Gibt ein Array mit allen Spielern und deren prozentualem Stimmenanteil zurück.</p>
+    <details>
+      <summary>Beispieloutput</summary>
+      <pre>
+[
+  {"spieler": "Max", "prozent": 50},
+  {"spieler": "Anna", "prozent": 50}
+]
+      </pre>
+    </details>
   </div>
   <div class="endpoint">
     <p><span class="method get">GET</span> <code>/revealImposter?lobby=123&spieler=Max</code></p>
     <p>Registriert, dass ein Imposter enttarnt wurde. Nur Imposter können enttarnt werden.</p>
+    <details>
+      <summary>Beispieloutput</summary>
+      <pre>
+Imposter Max wurde als enttarnt registriert.
+      </pre>
+    </details>
   </div>
   <div class="endpoint">
     <p><span class="method get">GET</span> <code>/areAllImpostersRevealed?lobby=123</code></p>
     <p>Gibt <code>true</code> zurück, wenn alle Imposter enttarnt wurden, sonst <code>false</code>.</p>
+    <details>
+      <summary>Beispieloutput</summary>
+      <pre>
+true
+      </pre>
+    </details>
   </div>
 
   <h2 class="category">🛠️ Sonstiges</h2>
@@ -182,14 +363,32 @@
   <div class="endpoint">
     <p><span class="method get">GET</span> <code>/gettest</code></p>
     <p>Testverbindung, gibt „Danke!“ zurück.</p>
+    <details>
+      <summary>Beispieloutput</summary>
+      <pre>
+Danke!
+      </pre>
+    </details>
   </div>
   <div class="endpoint">
     <p><span class="method post">POST</span> <code>/posttest</code></p>
     <p>Test mit JSON-Body <code>{"test": "deinWert"}</code>, gibt Dankestext zurück.</p>
+    <details>
+      <summary>Beispieloutput</summary>
+      <pre>
+Danke, dass du deinWert übermittelt hast!
+      </pre>
+    </details>
   </div>
   <div class="endpoint">
     <p><span class="method get">GET</span> <code>/kfc_feedback_code</code></p>
     <p>Generiert zufälligen KFC-Feedback-Code. Beispiel: <code>GER3181232405</code></p>
+    <details>
+      <summary>Beispieloutput</summary>
+      <pre>
+GER3181232405
+      </pre>
+    </details>
   </div>
 
   <hr>
