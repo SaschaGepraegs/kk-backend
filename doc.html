@@ -2,7 +2,7 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8">
-  <title>API-Dokumentation – Lobby-System</title>
+  <title>Backend-Doku</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -17,6 +17,19 @@
       background-color: #eee;
       padding: 0.2em 0.4em;
       border-radius: 4px;
+    }
+    details {
+      display: none;
+    }
+    code.url-link {
+      cursor: pointer;
+      text-decoration: underline;
+      color: #005588;
+      background-color: #eaf6ff;
+      transition: background 0.2s;
+    }
+    code.url-link:hover {
+      background-color: #d2eaff;
     }
     .endpoint {
       margin-bottom: 1.5em;
@@ -52,15 +65,143 @@
     .hidden {
       display: none;
     }
+    .popup-modal {
+      display: none;
+      position: fixed;
+      z-index: 9999;
+      left: 0; top: 0; width: 100vw; height: 100vh;
+      background: rgba(0,0,0,0.4);
+      align-items: center;
+      justify-content: center;
+    }
+    .popup-modal.active {
+      display: flex;
+    }
+    .popup-content {
+      background: #fff;
+      padding: 2em;
+      border-radius: 8px;
+      max-width: 90vw;
+      max-height: 80vh;
+      overflow: auto;
+      box-shadow: 0 4px 32px #0002;
+      position: relative;
+    }
+    .popup-content pre {
+      background: #eee;
+      padding: 1em;
+      border-radius: 6px;
+      margin: 0;
+      font-size: 1em;
+      max-width: 70vw;
+      max-height: 60vh;
+      overflow: auto;
+    }
+    .popup-close {
+      position: absolute;
+      right: 1em;
+      top: 1em;
+      background: #005588;
+      color: #fff;
+      border: none;
+      border-radius: 50%;
+      width: 2em;
+      height: 2em;
+      font-size: 1.2em;
+      cursor: pointer;
+    }
+    .url-btn {
+      background: #005588;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      padding: 0.2em 0.7em;
+      font-size: 1em;
+      cursor: pointer;
+      margin-right: 0.5em;
+      margin-bottom: 0.2em;
+      transition: background 0.2s;
+    }
+    .url-btn:hover {
+      background: #0077aa;
+    }
+    code.url-link {
+      cursor: pointer;
+      text-decoration: underline;
+      color: #005588;
+      background-color: #eaf6ff;
+      transition: background 0.2s;
+    }
+    code.url-link:hover {
+      background-color: #d2eaff;
+    }
+    .category.hidden {
+      display: none;
+    }
   </style>
   <script>
-    // Einfache Suchfunktion für Endpunkte
+    // Popup-Logik für Beispieloutput
     window.addEventListener('DOMContentLoaded', () => {
+      // Popup-Element erzeugen (nur einmal)
+      const modal = document.createElement('div');
+      modal.className = 'popup-modal';
+      modal.innerHTML = `
+        <div class="popup-content">
+          <button class="popup-close" title="Schließen">&times;</button>
+          <div class="popup-title"></div>
+          <pre class="popup-pre"></pre>
+        </div>
+      `;
+      document.body.appendChild(modal);
+      const closeBtn = modal.querySelector('.popup-close');
+      closeBtn.onclick = () => modal.classList.remove('active');
+      modal.onclick = e => { if (e.target === modal) modal.classList.remove('active'); };
+
+      // Alle Endpunkte durchgehen und Codeblöcke anklickbar machen
+      document.querySelectorAll('.endpoint').forEach(ep => {
+        const urlCode = ep.querySelector('code');
+        const details = ep.querySelector('details');
+        if (urlCode && details) {
+          urlCode.classList.add('url-link');
+          urlCode.title = 'Beispieloutput anzeigen';
+          urlCode.onclick = e => {
+            e.preventDefault();
+            const pre = details.querySelector('pre');
+            modal.querySelector('.popup-title').textContent = urlCode.textContent;
+            modal.querySelector('.popup-pre').textContent = pre ? pre.textContent.trim() : '';
+            modal.classList.add('active');
+          };
+        }
+      });
+
+      // Suchfunktion: blendet auch leere Kategorien aus
       const search = document.getElementById('search');
       search.addEventListener('input', function() {
         const val = this.value.toLowerCase();
+        // Endpunkte filtern
         document.querySelectorAll('.endpoint').forEach(ep => {
           ep.classList.toggle('hidden', !ep.textContent.toLowerCase().includes(val));
+        });
+        // Kategorien (Abschnitte) filtern
+        document.querySelectorAll('.category').forEach(cat => {
+          // Alle Endpunkte bis zur nächsten Kategorie
+          let next = cat.nextElementSibling;
+          let hasVisible = false;
+          while (next && !next.classList.contains('category')) {
+            if (next.classList.contains('endpoint') && !next.classList.contains('hidden')) {
+              hasVisible = true;
+            }
+            next = next.nextElementSibling;
+          }
+          cat.classList.toggle('hidden', !hasVisible);
+          // Auch alle Endpunkte darunter ausblenden, wenn Kategorie ausgeblendet
+          if (!hasVisible) {
+            let n = cat.nextElementSibling;
+            while (n && !n.classList.contains('category')) {
+              if (n.classList.contains('endpoint')) n.classList.add('hidden');
+              n = n.nextElementSibling;
+            }
+          }
         });
       });
     });
