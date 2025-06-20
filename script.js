@@ -234,29 +234,44 @@ app.get('/naechstesSpiel', async(req, res) => {
 app.get('/changeNaechstesSpiel', async(req, res) => {
     const { lobby, spielid } = req.query;
     const lobbies = await getLobbies();
-    if (lobbies[lobby]) {
-        if (!lobbies[lobby].naechsteSpiele) {
-            lobbies[lobby].naechsteSpiele = [];
-        }
-        const id = parseInt(spielid, 10);
-        if (Number.isInteger(id) && id >= 1 && id <= 20) {
-            lobbies[lobby].naechsteSpiele.push(id);
-            await saveLobbies(lobbies);
-            res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
-            res.send(lobbies[lobby].naechsteSpiele);
-        } else if (spielid === "false" || spielid === "null") {
-            lobbies[lobby].naechsteSpiele = [];
-            await saveLobbies(lobbies);
-            res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
-            res.send(lobbies[lobby].naechsteSpiele);
-        } else {
-            res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
-            res.status(400).send("Ungültige Spiel-ID");
-        }
-    } else {
+    if (!lobbies[lobby]) {
         res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
         res.status(404).send("Lobby nicht gefunden");
+        return;
     }
+    if (!Array.isArray(spielid)) {
+        res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+        res.status(400).send("spielid muss ein Array sein");
+        return;
+    }
+    if (!lobbies[lobby].naechsteSpiele) {
+        lobbies[lobby].naechsteSpiele = [];
+    }
+
+    // Sonderfall: Array enthält nur "false" oder "null" → Liste leeren
+    if (spielid.length === 1 && (spielid[0] === "false" || spielid[0] === "null")) {
+        lobbies[lobby].naechsteSpiele = [];
+        await saveLobbies(lobbies);
+        res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+        res.send(lobbies[lobby].naechsteSpiele);
+        return;
+    }
+
+    // IDs parsen und filtern
+    const validIds = spielid
+        .map(id => parseInt(id, 10))
+        .filter(id => Number.isInteger(id) && id >= 1 && id <= 20);
+
+    if (validIds.length !== spielid.length) {
+        res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+        res.status(400).send("Alle Spiel-IDs müssen Ganzzahlen zwischen 1 und 20 sein");
+        return;
+    }
+
+    lobbies[lobby].naechsteSpiele.push(...validIds);
+    await saveLobbies(lobbies);
+    res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+    res.send(lobbies[lobby].naechsteSpiele);
 });
 
 app.get('/kfc_feedback_code', (req, res) => {
