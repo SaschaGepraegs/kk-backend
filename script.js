@@ -232,23 +232,30 @@ app.get('/naechstesSpiel', async(req, res) => {
 });
 
 app.get('/changeNaechstesSpiel', async(req, res) => {
+    // Hole die Lobby und das Spiel-ID-Array aus den Query-Parametern
     const { lobby, spielid } = req.query;
     const lobbies = await getLobbies();
+
+    // Prüfe, ob die Lobby existiert
     if (!lobbies[lobby]) {
         res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
         res.status(404).send("Lobby nicht gefunden");
         return;
     }
+
+    // Prüfe, ob spielid wirklich ein Array ist (z.B. spielid[]=1&spielid[]=2)
     if (!Array.isArray(spielid)) {
         res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
         res.status(400).send("spielid muss ein Array sein");
         return;
     }
+
+    // Initialisiere das Array für die nächsten Spiele, falls es noch nicht existiert
     if (!lobbies[lobby].naechsteSpiele) {
         lobbies[lobby].naechsteSpiele = [];
     }
 
-    // Sonderfall: Array enthält nur "false" oder "null" → Liste leeren
+    // Sonderfall: Wenn das Array nur "false" oder "null" enthält, leere die Liste der nächsten Spiele
     if (spielid.length === 1 && (spielid[0] === "false" || spielid[0] === "null")) {
         lobbies[lobby].naechsteSpiele = [];
         await saveLobbies(lobbies);
@@ -257,19 +264,25 @@ app.get('/changeNaechstesSpiel', async(req, res) => {
         return;
     }
 
-    // IDs parsen und filtern
+    // Wandle alle Spiel-IDs in Zahlen um und filtere nur gültige IDs (Ganzzahlen zwischen 1 und 20)
     const validIds = spielid
         .map(id => parseInt(id, 10))
         .filter(id => Number.isInteger(id) && id >= 1 && id <= 20);
 
+    // Wenn nicht alle übergebenen IDs gültig sind, gib einen Fehler zurück
     if (validIds.length !== spielid.length) {
         res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
         res.status(400).send("Alle Spiel-IDs müssen Ganzzahlen zwischen 1 und 20 sein");
         return;
     }
 
+    // Füge alle gültigen Spiel-IDs zur Liste der nächsten Spiele hinzu
     lobbies[lobby].naechsteSpiele.push(...validIds);
+
+    // Speichere die aktualisierten Lobbys in der Datenbank
     await saveLobbies(lobbies);
+
+    // Setze Header, damit nichts gecacht wird, und sende die neue Liste zurück
     res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
     res.send(lobbies[lobby].naechsteSpiele);
 });
