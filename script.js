@@ -546,4 +546,29 @@ app.get('/playerInfo', async(req, res) => {
     }
 });
 
+// Neuer Endpunkt: /voteForElection
+app.get('/voteForElection', async(req, res) => {
+    const { lobby, spieler } = req.query;
+    const lobbies = await getLobbies();
+    if (lobbies[lobby]) {
+        if (!lobbies[lobby].voteForElection) {
+            lobbies[lobby].voteForElection = [];
+        }
+        if (!lobbies[lobby].players.includes(spieler)) {
+            res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+            res.status(400).send("Spieler nicht in Lobby");
+            return;
+        }
+        if (!lobbies[lobby].voteForElection.includes(spieler)) {
+            lobbies[lobby].voteForElection.push(spieler);
+            await saveLobbies(lobbies);
+        }
+        res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+        res.send(lobbies[lobby].voteForElection);
+    } else {
+        res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+        res.status(404).send("Lobby nicht gefunden");
+    }
+});
+
 app.listen(3000);
