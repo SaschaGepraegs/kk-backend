@@ -221,6 +221,9 @@
   <div class="endpoint">
     <p><span class="method get">GET</span> <code>/lobbyInfo?lobby=123</code></p>
     <p>Gibt alle Informationen einer Lobby als Objekt zurück (Spieler, Punkte, Status, Warteschlange, Rollen, etc.).</p>
+    <ul>
+      <li><strong>goToElection</strong>: <code>true</code>, wenn mindestens 2/3 der Spieler bereit für die Wahlphase sind (siehe <code>/voteForElection</code>), sonst <code>false</code>.</li>
+    </ul>
     <details>
       <summary>Beispieloutput</summary>
       <pre>
@@ -235,7 +238,8 @@
   "removedPlayers": [],
   "revealedImposters": ["Max"],
   "imposter": ["Max", "Anna"],
-  "crewmateWord": "Kaktus"
+  "crewmateWord": "Kaktus",
+  "goToElection": true
 }
       </pre>
     </details>
@@ -495,6 +499,16 @@ Imposter Max wurde als enttarnt registriert.
       <summary>Beispieloutput</summary>
       <pre>
 true
+      </pre>
+    </details>
+  </div>
+  <div class="endpoint">
+    <p><span class="method get">GET</span> <code>/voteForElection?lobby=123&spieler=Max</code></p>
+    <p>Signalisiert, dass ein Spieler bereit ist, in die Wahlphase zu gehen. Gibt ein Array aller Spieler zurück, die bereit sind. Sobald mindestens 2/3 der Spieler bereit sind, steht <code>goToElection: true</code> in <code>/lobbyInfo</code>.</p>
+    <details>
+      <summary>Beispieloutput</summary>
+      <pre>
+["Max", "Anna"]
       </pre>
     </details>
   </div>

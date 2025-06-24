@@ -98,7 +98,8 @@ app.post('/registerLobby', async(req, res) => {
             punkte: {},
             imposterVotes: {},
             removedPlayers: [],
-            revealedImposters: [] // Neu: enttarnte Imposter
+            revealedImposters: [],
+            voteForElection: [] // Neu: Spieler, die bereit für Wahlphase sind
         };
         await saveLobbies(lobbies);
     }
@@ -484,6 +485,10 @@ app.get('/lobbyInfo', async(req, res) => {
     const lobbies = await getLobbies();
     if (lobbies[lobby]) {
         const lobbyObj = lobbies[lobby];
+        // 2/3-Mehrheit für Wahlphase berechnen
+        const playerCount = (lobbyObj.players || []).length;
+        const electionVotes = (lobbyObj.voteForElection || []).length;
+        const goToElection = playerCount > 0 && electionVotes >= Math.ceil(playerCount * 2 / 3);
         res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
         res.send({
             players: lobbyObj.players || [],
@@ -496,7 +501,8 @@ app.get('/lobbyInfo', async(req, res) => {
             removedPlayers: lobbyObj.removedPlayers || [],
             revealedImposters: lobbyObj.revealedImposters || [],
             imposter: lobbyObj.imposter || [],
-            crewmateWord: lobbyObj.crewmateWord || null
+            crewmateWord: lobbyObj.crewmateWord || null,
+            goToElection // Neu: true/false, ob 2/3 bereit sind
         });
     } else {
         res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
