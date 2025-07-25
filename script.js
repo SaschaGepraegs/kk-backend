@@ -571,4 +571,17 @@ app.get('/voteForElection', async(req, res) => {
     }
 });
 
+// Neuer Endpunkt: Gesamtanzahl aller Spieler über alle Lobbys
+app.get('/totalPlayers', async (req, res) => {
+    const lobbies = await getLobbies();
+    let total = 0;
+    Object.values(lobbies).forEach(lobbyObj => {
+        if (Array.isArray(lobbyObj.players)) {
+            total += lobbyObj.players.length;
+        }
+    });
+    res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+    res.send({ totalPlayers: total });
+});
+
 app.listen(3000);
